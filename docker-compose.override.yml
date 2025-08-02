@@ -21,27 +21,40 @@
 
 # ---------------------------------------------------
 
-# services:
+services:
 
-# # USE LIBRECHAT CONFIG FILE
-#   api:
-#     volumes:
-#     - type: bind
-#       source: ./librechat.yaml
-#       target: /app/librechat.yaml
+  # USE LIBRECHAT CONFIG FILE
+  # api:
+  #   volumes:
+  #     - type: bind
+  #       source: ./librechat.yaml
+  #       target: /app/librechat.yaml
 
-# # LOCAL BUILD
-#   api:
-#     image: librechat
-#     build:
-#       context: .
-#       target: node
+  # USE OFFICIAL LIBRECHAT IMAGE
+  api:
+    image: ghcr.io/danny-avila/librechat:latest
+    volumes:
+      - type: bind
+        source: ./librechat.yaml
+        target: /app/config/librechat.yaml
+      - type: bind
+        source: ./logs
+        target: /app/api/logs
+      - type: bind
+        source: ./data
+        target: /app/data
+    environment:
+      - SEARCH=true
+      - MEILI_NO_ANALYTICS=true
+      - CONFIG_PATH=/app/config/librechat.yaml
+      - CUSTOM_CONFIG_PATH=/app/config/librechat.yaml
+      - ENDPOINTS_DISABLED=
 
-# # BUILD FROM LATEST IMAGE
-#   api:
-#     image: ghcr.io/danny-avila/librechat-dev:latest
+  # BUILD FROM LATEST IMAGE
+  # api:
+  #   image: ghcr.io/danny-avila/librechat-dev:latest
 
-# # BUILD FROM LATEST IMAGE (NUMBERED RELEASE)
+  # BUILD FROM LATEST IMAGE (NUMBERED RELEASE)
 #   api:
 #     image: ghcr.io/danny-avila/librechat:latest
 
@@ -93,14 +106,15 @@
 #       - 27018:27017
 
 # # DISABLE MEILISEARCH
-#   meilisearch:
-#     profiles:
-#       - donotstart
+#  meilisearch:
+#    profiles:
+#      - donotstart
 
 # # EXPOSE MEILISEARCH PORTS - DO NOT USE THE DEFAULT VALUE FOR THE MASTER KEY IF YOU DO THIS
-#   meilisearch:
-#     ports:
-#       - 7700:7700
+  meilisearch:
+    ports:
+    - 7700:7700
+    user: "root"
 
 # # USE RAG API IMAGE WITH LOCAL EMBEDDINGS SUPPORT
 #  rag_api:
@@ -110,18 +124,25 @@
 #      - "host.docker.internal:host-gateway"
 
 # # ADD OLLAMA
-#  ollama:
-#    image: ollama/ollama:latest
-#    deploy:
-#      resources:
-#        reservations:
-#          devices:
-#            - driver: nvidia
-#              capabilities: [compute, utility]
-#    ports:
-#      - "11434:11434"
-#    volumes:
-#      - ./ollama:/root/.ollama
+  ollama:
+    image: ollama/ollama:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [compute, utility]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+      - OLLAMA_CUDA_DEVICE=0
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_ORIGINS=*
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama:/root/.ollama
+    restart: unless-stopped
 
 # # ADD LITELLM BASIC - NEED TO CONFIGURE litellm-config.yaml, ONLY NEED ENV TO ENABLE REDIS FOR CACHING OR LANGFUSE FOR MONITORING
 #  litellm:
@@ -143,16 +164,16 @@
 #      LANGFUSE_HOST: http://langfuse-server:3000
 
 # # ADD LITELLM CACHING
-#  redis:
-#    image: redis:7-alpine
-#    command:
-#    - sh
-#    - -c # this is to evaluate the $REDIS_PASSWORD from the env
-#    - redis-server --appendonly yes --requirepass $$REDIS_PASSWORD ## $$ because of docker-compose
-#    environment:
-#      REDIS_PASSWORD: RedisChangeMe
-#    volumes:
-#    - ./redis:/data
+  redis:
+    image: redis:7-alpine
+    command:
+    - sh
+    - -c # this is to evaluate the $REDIS_PASSWORD from the env
+    - redis-server --appendonly yes --requirepass $$REDIS_PASSWORD ## $$ because of docker-compose
+    environment:
+      REDIS_PASSWORD: RedisChangeMe
+    volumes:
+      - ./redis:/data
 
 # # ADD LITELLM MONITORING
 #  langfuse-server:

@@ -15,3 +15,6 @@ docs
 
 # Ignore all hidden files
 .*
+node_modules
+.git
+*.log

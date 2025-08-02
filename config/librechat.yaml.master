@@ -1,0 +1,18 @@
+version: 1.2.8
+cache: true
+endpoints:
+  custom:
+
+    - name: "Ollama"
+      apiKey: "ollama"
+      baseURL: "http://localhost:11434/v1/" 
+      models:
+        default: [
+          "llama3:latest",
+          "command-r",
+          "mixtral",
+          "phi3"
+          ]
+        fetch: true # fetching list of models is not supported
+      titleConvo: true
+      titleModel: "current_model"

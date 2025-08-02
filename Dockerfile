@@ -2,6 +2,8 @@
 
 # Base node image
 FROM node:20-alpine AS node
+ARG UID
+ARG GID
 
 # Install jemalloc
 RUN apk add --no-cache jemalloc
